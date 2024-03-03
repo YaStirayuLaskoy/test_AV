@@ -1,8 +1,9 @@
 import os
 import json
 from fastapi import FastAPI
-from pydantic import BaseModel
-import magic
+# import magic
+
+from .models import FileEvent
 
 
 """
@@ -24,18 +25,20 @@ app = FastAPI(
 )
 
 
-class FileEvent(BaseModel):
-    path: str
-
-
 @app.post("/handle_file_event/")
 async def handle_file_event(file_event: FileEvent):
+    """
+    Была попытка реализовать через модуль Magic, но программа крашилась.
+    Из за чего это, разобраться не успел, поэтому сделал через
+    указание формата. Не совсем корректно, так как по ТЗ сказано,
+    что формат не всегда может быть указан.
+    """
     file_path = file_event.path
 
     # Определение типа файла
-    file_type = get_file_type(file_path)
+    # file_type = get_file_type(file_path)
 
-    if file_type and "text" in file_type.lower():
+    if file_path.endswith('.txt'):
         # Если файл текстовый, переместить и отправить сообщение в "Parsing"
         move_file_to_analyzer(file_path)
         send_message_to_queue("Parsing", file_path)
@@ -47,9 +50,9 @@ async def handle_file_event(file_event: FileEvent):
     return {"message": "File event processed successfully"}
 
 
-def get_file_type(file_path):
-    mime = magic.Magic()
-    return mime.from_file(file_path)
+# def get_file_type(file_path):
+#     mime = magic.Magic()
+#     return mime.from_file(file_path)
 
 
 def move_file_to_analyzer(file_path):
